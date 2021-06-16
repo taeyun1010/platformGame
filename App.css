@@ -1,7 +1,13 @@
+.stage-change {
+    display: none;
+}
+
 .background {
-    background: rgb(52, 166, 251);
+    /* background: rgb(52, 166, 251); */
     table-layout: fixed;
     border-spacing: 0;
+    /* background-image: url("./background/angelIsland.png"); */
+    background-size: contain;
 }
 
 .background td {

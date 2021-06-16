@@ -8,14 +8,7 @@
     <link rel="stylesheet" href="App.css">
 </head>
 <body>
-    <!-- <div style="position:relative;width:267px;height:25px;overflow:hidden;">
-    <div style="position:absolute;top:-276px;left:-5px">
-    <iframe width="300" height="300" 
-    src="https://www.youtube.com/embed/xcvouNwZbI0?rel=0">
-    </iframe>
-    </div>
-    </div> -->
-    <div data-video="xcvouNwZbI0"  
+    <!-- <div data-video="xcvouNwZbI0"  
         data-autoplay="1"         
         data-loop="1"             
         id="youtube-audio"
@@ -23,10 +16,15 @@
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
-    <script src="https://cdn.rawgit.com/labnol/files/master/yt.js"></script>
+    <script src="https://cdn.rawgit.com/labnol/files/master/yt.js"></script> -->
 
-    <!-- <audio src="./music/remilia.mp3" autoplay loop></audio> -->
-    <div>life : <span id="lives">3</span></div>
+    <audio src="./music/cirno.mp3" autoplay loop></audio>
+    <div>Code : <input id="code" type="text"></div>
+    <button>Enter</button>
+    <div>life : <input id="lives" value="3" readonly></div>
+    <div class="stage-change">
+        <span>Go to stage : </span><input class="stage-number" type="number" min="1" max="5">
+    </div>
     <script src="App.js">
     </script>
 </body>
