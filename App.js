@@ -575,7 +575,7 @@ CanvasDisplay.prototype.drawActors = function(actors) {
             this.drawPlayer(actor, x, y, width, height);
         }
         else if (actor.type == "monster") {
-            console.log("drawing monster");
+            // console.log("drawing monster");
             this.cx.drawImage(monsterImg,
                 // 0, 0, width, height,
                 0, 0, 773, 1032,
