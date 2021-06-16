@@ -183,6 +183,15 @@ Monster.prototype.collide = function (state) {
 
     if (playerY <= monsterY - 1) {
         const filtered = state.actors.filter(a => a != this);
+        const killSound = new Audio('./sound/damnImGood.mp3');
+        const killSound2 = new Audio('./sound/comeGetSome.mp3');
+        const randomVal = Math.random();
+
+        if (randomVal < 0.5)
+            killSound.play();
+        else 
+            killSound2.play();
+
         return new State(state.level, filtered, state.status);
     }
     else { 
@@ -743,6 +752,9 @@ async function runGame(plans, Display) {
             replayMusic = true;
         }
         else if (status === "lost") {
+            const deathSound = new Audio('./sound/death.mp3');
+            deathSound.play();
+
             if (remainingLives-- === 0) {
                 alert('Game Over');
                 remainingLives = 3;
