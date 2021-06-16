@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="App.css">
+</head>
+<body>
+    <!-- <div style="position:relative;width:267px;height:25px;overflow:hidden;">
+    <div style="position:absolute;top:-276px;left:-5px">
+    <iframe width="300" height="300" 
+    src="https://www.youtube.com/embed/xcvouNwZbI0?rel=0">
+    </iframe>
+    </div>
+    </div> -->
+    <div data-video="xcvouNwZbI0"  
+        data-autoplay="1"         
+        data-loop="1"             
+        id="youtube-audio"
+        style="display: none;">
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://cdn.rawgit.com/labnol/files/master/yt.js"></script>
+
+    <!-- <audio src="./music/remilia.mp3" autoplay loop></audio> -->
+    <div>life : <span id="lives">3</span></div>
+    <script src="App.js">
+    </script>
+</body>
+</html>
