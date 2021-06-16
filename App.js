@@ -404,6 +404,192 @@ DOMDisplay.prototype.scrollPlayerIntoView = function(state) {
     }
 };
 
+function flipHorizontally(context, around) {
+    context.translate(around, 0);
+    context.scale(-1, 1);
+    context.translate(-around, 0);
+}
+
+class CanvasDisplay {
+    constructor(parent, level) {
+        this.canvas = document.createElement("canvas");
+        this.canvas.width = Math.min(600, level.width * scale);
+        this.canvas.height = Math.min(450, level.height * scale);
+        parent.appendChild(this.canvas);
+        this.cx = this.canvas.getContext("2d");
+        this.flipPlayer = false;
+        this.viewport = {
+            left: 0,
+            top: 0,
+            width: this.canvas.width / scale,
+            height: this.canvas.height / scale
+        };
+    }
+
+    clear() {
+        this.canvas.remove();
+    }
+}
+
+CanvasDisplay.prototype.syncState = function (state) {
+    //플레이어가 화면 가장자리에 너무 가까이 있다면 viewport를 이동한다.
+    this.updateViewport(state);
+    this.clearDisplay(state.status);
+    this.drawBackground(state.level);
+    this.drawActors(state.actors);
+};
+
+CanvasDisplay.prototype.updateViewport = function(state) {
+    let view = this.viewport;
+    let margin = view.width / 3;
+    let player = state.player;
+    let center = player.pos.plus(player.size.times(0.5));
+
+    if (center.x < view.left + margin) {
+        view.left = Math.max(center.x - margin, 0);
+    }
+    else if (center.x > view.left + view.width - margin) {
+        view.left = Math.min(center.x + margin - view.width, 
+            state.level.width - view.width);
+    }
+    if (center.y < view.top + margin) {
+        view.top = Math.max(center.y - margin, 0);
+    }
+    else if (center.y > view.top + view.height - margin) {
+        view.top = Math.min(center.y + margin - view.height,
+            state.level.height - view.height);
+    }
+};
+
+CanvasDisplay.prototype.clearDisplay = function(status) {
+    if (status == "won") {
+        this.cx.fillStyle = "rgb(68, 191, 255)";
+    }
+    else if (status == "lost") {
+        this.cx.fillStyle = "rgb(44, 136, 214)";
+    }
+    else {
+        // this.cx.fillStyle = "rgb(52, 166, 251)";
+        let background = new Image();
+        switch (levelGlobal) {
+            case 0: {
+                background.src = "background/angelIsland.png";
+                break;
+            }
+            case 1: {
+                background.src = "background/skyBattery.png";
+                break;
+            }
+            case 2: {
+                background.src = "background/skyBattery2.png";
+                break;
+            }
+            case 3: {
+                background.src = "background/lavaReef.png";
+                break;
+            }
+            case 4: {
+                background.src = "background/doomsDay.png";
+                break;
+            }
+        }
+        let margin = this.viewport.width / 3;
+        let { left, top, width, height } = this.viewport;
+        let screenX = (- left) * scale;
+        let screenY = (- top) * scale;
+        this.cx.drawImage(background, 0, 0,
+            1500, 1050,
+            screenX, screenY,
+            (this.canvas.width) * scale,
+            (this.canvas.height) * scale);   
+    }
+    // this.cx.fillRect(0, 0,
+    //     this.canvas.width, this.canvas.height);
+}
+
+let otherSprites = document.createElement("img");
+otherSprites.src = "img/sprites.png";
+
+let monsterImg = document.createElement("img");
+monsterImg.src = "character/remilia.png";
+
+CanvasDisplay.prototype.drawBackground = function(level) {
+    let { left, top, width, height } = this.viewport;
+    let xStart = Math.floor(left);
+    let xEnd = Math.ceil(left + width);
+    let yStart = Math.floor(top);
+    let yEnd = Math.ceil(top + height);
+
+    for (let y = yStart; y < yEnd; ++y) {
+        for (let x = xStart; x < xEnd; ++x) {
+            let tile = level.rows[y][x];
+            if (tile == "empty")
+                continue;
+            let screenX = (x - left) * scale;
+            let screenY = (y - top) * scale;
+            let tileX = tile == "lava"? scale : 0;
+            this.cx.drawImage(otherSprites,
+                tileX, 0, scale, scale,
+                screenX, screenY, scale, scale);
+        }
+    }
+};
+
+let playerSprites = document.createElement("img");
+playerSprites.src = "character/player.png";
+const playerXOverlap = 4;
+
+CanvasDisplay.prototype.drawPlayer = function(player, x, y,
+                                              width, height) {
+    width += playerXOverlap * 2;
+    x -= playerXOverlap;
+    if (player.speed.x != 0) {
+        this.flipPlayer = player.speed.x < 0;
+    }
+
+    let tile = 8;
+    if (player.speed.y != 0) {
+        tile = 9;
+    }
+    else if (player.speed.x != 0) {
+        tile = Math.floor(Date.now() / 60) % 8;
+    }
+
+    this.cx.save();
+    if (this.flipPlayer) {
+        flipHorizontally(this.cx, x + width / 2);
+    }
+    let tileX = tile * width;
+    this.cx.drawImage(playerSprites, tileX, 0, width, height,
+        x, y, width, height);
+        this.cx.restore();
+};
+
+CanvasDisplay.prototype.drawActors = function(actors) {
+    for (let actor of actors) {
+        let width = actor.size.x * scale;
+        let height = actor.size.y * scale;
+        let x = (actor.pos.x - this.viewport.left) * scale;
+        let y = (actor.pos.y - this.viewport.top) * scale;
+        if (actor.type == "player") {
+            this.drawPlayer(actor, x, y, width, height);
+        }
+        else if (actor.type == "monster") {
+            console.log("drawing monster");
+            this.cx.drawImage(monsterImg,
+                // 0, 0, width, height,
+                0, 0, 773, 1032,
+                x, y, width, height);
+        }
+        else {
+            let tileX = (actor.type == "coin" ? 2 : 1) * scale;
+            this.cx.drawImage(otherSprites,
+                tileX, 0, width, height,
+                x, y, width, height);
+        }
+    }
+};
+
 function trackKeys(keys, add) {
     if (add) {
         let down = Object.create(null);
@@ -445,36 +631,36 @@ function runLevel(level, Display, replayMusic) {
     let ending = 1;
     let running = "yes";
     const arrowKeys = trackKeys(["ArrowLeft", "ArrowRight", "ArrowUp"], true);
-    const backgroundDiv = document.querySelector(".background");
+    // const backgroundDiv = document.querySelector(".background");
     const musicDiv = document.querySelector("audio");
 
     switch (levelGlobal) {
         case 0: {
-            backgroundDiv.style.backgroundImage = "url('./background/angelIsland.png')";
+            // backgroundDiv.style.backgroundImage = "url('./background/angelIsland.png')";
             if (replayMusic)
                 musicDiv.setAttribute("src", "./music/cirno.mp3");
             break;
         }
         case 1: {
-            backgroundDiv.style.backgroundImage = "url('./background/skyBattery.png')";
+            // backgroundDiv.style.backgroundImage = "url('./background/skyBattery.png')";
             if (replayMusic)
                 musicDiv.setAttribute("src", "./music/chineseTea.mp3");
             break;
         }
         case 2: {
-            backgroundDiv.style.backgroundImage = "url('./background/skyBattery2.png')";
+            // backgroundDiv.style.backgroundImage = "url('./background/skyBattery2.png')";
             if (replayMusic)
                 musicDiv.setAttribute("src", "./music/cirno2.mp3");
             break;
         }
         case 3: {
-            backgroundDiv.style.backgroundImage = "url('./background/lavaReef.png')";
+            // backgroundDiv.style.backgroundImage = "url('./background/lavaReef.png')";
             if (replayMusic)
                 musicDiv.setAttribute("src", "./music/flandre.mp3");
             break;
         }
         case 4: {
-            backgroundDiv.style.backgroundImage = "url('./background/doomsDay.png')";
+            // backgroundDiv.style.backgroundImage = "url('./background/doomsDay.png')";
             if (replayMusic)
                 musicDiv.setAttribute("src", "./music/remilia.mp3");
             break;
@@ -767,4 +953,5 @@ function changeHandler(event) {
 
 document.querySelector("#lives").addEventListener("change", changeHandler);
 
-runGame(GAME_LEVELS, DOMDisplay);
+//runGame(GAME_LEVELS, DOMDisplay);
+runGame(GAME_LEVELS, CanvasDisplay);

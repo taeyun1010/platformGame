@@ -2,6 +2,10 @@
     display: none;
 }
 
+canvas {
+    /* background-image: url("./background/angelIsland.png"); */
+}
+
 .background {
     /* background: rgb(52, 166, 251); */
     table-layout: fixed;
